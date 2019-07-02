@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		5699724CC67DBE6A5F19C89A /* Pods_AsyncTaskQueue.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8F4478DFB0D79991B0067447 /* Pods_AsyncTaskQueue.framework */; };
 		C0AAFA5722CBF805002184F2 /* AsyncTaskQueue.h in Headers */ = {isa = PBXBuildFile; fileRef = C0AAFA5522CBF805002184F2 /* AsyncTaskQueue.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		C0AAFA6422CBFBDB002184F2 /* TQThread.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0AAFA5F22CBFBDB002184F2 /* TQThread.swift */; };
 		C0AAFA6522CBFBDB002184F2 /* TQTask.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0AAFA6022CBFBDB002184F2 /* TQTask.swift */; };
@@ -16,6 +17,8 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		4B90252F6AF008E15F1A1DBE /* Pods-AsyncTaskQueue.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-AsyncTaskQueue.debug.xcconfig"; path = "Pods/Target Support Files/Pods-AsyncTaskQueue/Pods-AsyncTaskQueue.debug.xcconfig"; sourceTree = "<group>"; };
+		8F4478DFB0D79991B0067447 /* Pods_AsyncTaskQueue.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_AsyncTaskQueue.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		C0AAFA5222CBF805002184F2 /* AsyncTaskQueue.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = AsyncTaskQueue.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		C0AAFA5522CBF805002184F2 /* AsyncTaskQueue.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AsyncTaskQueue.h; sourceTree = "<group>"; };
 		C0AAFA5622CBF805002184F2 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -24,6 +27,7 @@
 		C0AAFA6122CBFBDB002184F2 /* TQQueue.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TQQueue.swift; sourceTree = "<group>"; };
 		C0AAFA6222CBFBDB002184F2 /* TQConfig.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TQConfig.swift; sourceTree = "<group>"; };
 		C0AAFA6322CBFBDB002184F2 /* TQTaskDatabase.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TQTaskDatabase.swift; sourceTree = "<group>"; };
+		C21B552BC3F2503299DA2A16 /* Pods-AsyncTaskQueue.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-AsyncTaskQueue.release.xcconfig"; path = "Pods/Target Support Files/Pods-AsyncTaskQueue/Pods-AsyncTaskQueue.release.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -31,17 +35,37 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				5699724CC67DBE6A5F19C89A /* Pods_AsyncTaskQueue.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		0806335A2B0353D1340701EB /* Pods */ = {
+			isa = PBXGroup;
+			children = (
+				4B90252F6AF008E15F1A1DBE /* Pods-AsyncTaskQueue.debug.xcconfig */,
+				C21B552BC3F2503299DA2A16 /* Pods-AsyncTaskQueue.release.xcconfig */,
+			);
+			name = Pods;
+			sourceTree = "<group>";
+		};
+		5D7957EC9D0001BECAEE5C1D /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				8F4478DFB0D79991B0067447 /* Pods_AsyncTaskQueue.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 		C0AAFA4822CBF805002184F2 = {
 			isa = PBXGroup;
 			children = (
 				C0AAFA5422CBF805002184F2 /* AsyncTaskQueue */,
 				C0AAFA5322CBF805002184F2 /* Products */,
+				0806335A2B0353D1340701EB /* Pods */,
+				5D7957EC9D0001BECAEE5C1D /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -85,6 +109,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = C0AAFA5A22CBF805002184F2 /* Build configuration list for PBXNativeTarget "AsyncTaskQueue" */;
 			buildPhases = (
+				4912B2F7174359A9470AEFB9 /* [CP] Check Pods Manifest.lock */,
 				C0AAFA4D22CBF805002184F2 /* Headers */,
 				C0AAFA4E22CBF805002184F2 /* Sources */,
 				C0AAFA4F22CBF805002184F2 /* Frameworks */,
@@ -140,6 +165,27 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		4912B2F7174359A9470AEFB9 /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-AsyncTaskQueue-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		C0AAFA4E22CBF805002184F2 /* Sources */ = {
@@ -281,6 +327,7 @@
 		};
 		C0AAFA5B22CBF805002184F2 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 4B90252F6AF008E15F1A1DBE /* Pods-AsyncTaskQueue.debug.xcconfig */;
 			buildSettings = {
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_IDENTITY = "";
@@ -308,6 +355,7 @@
 		};
 		C0AAFA5C22CBF805002184F2 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = C21B552BC3F2503299DA2A16 /* Pods-AsyncTaskQueue.release.xcconfig */;
 			buildSettings = {
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_IDENTITY = "";
