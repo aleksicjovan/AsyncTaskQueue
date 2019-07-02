@@ -8,12 +8,22 @@
 
 /* Begin PBXBuildFile section */
 		C0AAFA5722CBF805002184F2 /* AsyncTaskQueue.h in Headers */ = {isa = PBXBuildFile; fileRef = C0AAFA5522CBF805002184F2 /* AsyncTaskQueue.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		C0AAFA6422CBFBDB002184F2 /* TQThread.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0AAFA5F22CBFBDB002184F2 /* TQThread.swift */; };
+		C0AAFA6522CBFBDB002184F2 /* TQTask.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0AAFA6022CBFBDB002184F2 /* TQTask.swift */; };
+		C0AAFA6622CBFBDB002184F2 /* TQQueue.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0AAFA6122CBFBDB002184F2 /* TQQueue.swift */; };
+		C0AAFA6722CBFBDB002184F2 /* TQConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0AAFA6222CBFBDB002184F2 /* TQConfig.swift */; };
+		C0AAFA6822CBFBDB002184F2 /* TQTaskDatabase.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0AAFA6322CBFBDB002184F2 /* TQTaskDatabase.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		C0AAFA5222CBF805002184F2 /* AsyncTaskQueue.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = AsyncTaskQueue.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		C0AAFA5522CBF805002184F2 /* AsyncTaskQueue.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AsyncTaskQueue.h; sourceTree = "<group>"; };
 		C0AAFA5622CBF805002184F2 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		C0AAFA5F22CBFBDB002184F2 /* TQThread.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TQThread.swift; sourceTree = "<group>"; };
+		C0AAFA6022CBFBDB002184F2 /* TQTask.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TQTask.swift; sourceTree = "<group>"; };
+		C0AAFA6122CBFBDB002184F2 /* TQQueue.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TQQueue.swift; sourceTree = "<group>"; };
+		C0AAFA6222CBFBDB002184F2 /* TQConfig.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TQConfig.swift; sourceTree = "<group>"; };
+		C0AAFA6322CBFBDB002184F2 /* TQTaskDatabase.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TQTaskDatabase.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -46,6 +56,11 @@
 		C0AAFA5422CBF805002184F2 /* AsyncTaskQueue */ = {
 			isa = PBXGroup;
 			children = (
+				C0AAFA6222CBFBDB002184F2 /* TQConfig.swift */,
+				C0AAFA6122CBFBDB002184F2 /* TQQueue.swift */,
+				C0AAFA6022CBFBDB002184F2 /* TQTask.swift */,
+				C0AAFA6322CBFBDB002184F2 /* TQTaskDatabase.swift */,
+				C0AAFA5F22CBFBDB002184F2 /* TQThread.swift */,
 				C0AAFA5522CBF805002184F2 /* AsyncTaskQueue.h */,
 				C0AAFA5622CBF805002184F2 /* Info.plist */,
 			);
@@ -95,6 +110,7 @@
 				TargetAttributes = {
 					C0AAFA5122CBF805002184F2 = {
 						CreatedOnToolsVersion = 10.2.1;
+						LastSwiftMigration = 1020;
 					};
 				};
 			};
@@ -130,6 +146,11 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C0AAFA6722CBFBDB002184F2 /* TQConfig.swift in Sources */,
+				C0AAFA6622CBFBDB002184F2 /* TQQueue.swift in Sources */,
+				C0AAFA6422CBFBDB002184F2 /* TQThread.swift in Sources */,
+				C0AAFA6522CBFBDB002184F2 /* TQTask.swift in Sources */,
+				C0AAFA6822CBFBDB002184F2 /* TQTaskDatabase.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -261,6 +282,7 @@
 		C0AAFA5B22CBF805002184F2 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_IDENTITY = "";
 				CODE_SIGN_STYLE = Automatic;
 				DEFINES_MODULE = YES;
@@ -278,6 +300,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = joca.AsyncTaskQueue;
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
 				SKIP_INSTALL = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -286,6 +309,7 @@
 		C0AAFA5C22CBF805002184F2 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_IDENTITY = "";
 				CODE_SIGN_STYLE = Automatic;
 				DEFINES_MODULE = YES;
