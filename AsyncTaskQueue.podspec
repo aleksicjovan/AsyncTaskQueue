@@ -14,11 +14,11 @@ Pod::Spec.new do |s|
 
   s.author             = { "aleksicjovan" => "jovan.aleksic.a@gmail.com" }
 
-  # s.ios.deployment_target = "12.0"
+  s.ios.deployment_target = "12.0"
 
   s.source       = { :path => "./" }
 
-  s.source_files  = "Classes", "Classes/**/*.{h,m}"
+  s.source_files  = "Classes", "**/*.{h,m,swift}"
   s.exclude_files = "Classes/Exclude"
 
   # s.public_header_files = "Classes/**/*.h"
