@@ -11,35 +11,54 @@ import CouchbaseLiteSwift
 
 class TQTaskDatabase {
 
-	private var taskList = [TQTask]()
+	private var database: Database!
 
-	public func getFirstReadyTask(requiresInternetConnection: Bool = false) -> TQTask? {
-		let sortedTasks = taskList.sorted { (first, second) -> Bool in
-			return first.additionTimestamp < second.additionTimestamp
+	internal func getFirstReadyTask(requiresInternetConnection: Bool = false) -> TQTask? {
+		let query = QueryBuilder
+			.select(SelectResult.all())
+			.from(DataSource.database(database))
+			.where(Expression.property("state").equalTo(Expression.string(TQTaskState.ready.rawValue)))
+			.orderBy(Ordering.property("additionTimestamp").ascending())
+			.limit(Expression.int(1))
+
+		let resultSet = try! query.execute()
+		if let result = resultSet.next() {
+			return TQTask.deserializeTask(result.dictionary(forKey: database.name)!.toDictionary())
+		} else {
+			return nil
 		}
-		let task = sortedTasks.first(where: { task in
-			return task.state == .ready
-		})
-		return task
 	}
 
-	public func saveTask(_ task: TQTask) {
-		removeTask(task)
-		taskList.insert(task, at: 0)
+	internal func saveTask(_ task: TQTask) {
+		let doc = TQTask.serializeTask(task)
+		try! database.saveDocument(doc)
 	}
 
-	public func addTask(_ task: TQTask) {
-		taskList.append(task)
+	internal func addTask(_ task: TQTask) {
+		saveTask(task)
 	}
 
-	public func removeTask(_ task: TQTask) {
-		taskList.removeAll(where: { queuedTask in
-			queuedTask.id == task.id
-		})
+	internal func removeTask(_ task: TQTask) {
+		let doc = TQTask.serializeTask(task)
+		try! database.deleteDocument(doc)
 	}
 
-	public func moveToEndOfQueue(_ task: TQTask) {
-		task.additionTimestamp = Date().timeIntervalSince1970
+	private func getDatabaseNameFromKey(_ key: String) -> String {
+		return "Database-\(key)"
+	}
+
+	internal func initialize(databaseKey: String) -> Bool {
+		do {
+			let databaseName = getDatabaseNameFromKey(databaseKey)
+			database = try Database(name: databaseName)
+			return true
+		} catch {
+			return false
+		}
+	}
+
+	internal func uninitialize() {
+		database = nil
 	}
 
 }
