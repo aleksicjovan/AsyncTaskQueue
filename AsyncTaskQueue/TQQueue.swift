@@ -10,6 +10,12 @@ import Foundation
 
 public final class TQQueue {
 
+	private(set) var initialized = false
+
+	private(set) var mainBundle: Bundle!
+
+	private(set) var classResolverFunction: ((String) -> AnyClass?)!
+
 	private var taskDatabase = TQTaskDatabase()
 
 	private var threads = [TQThread]()
@@ -47,20 +53,26 @@ public final class TQQueue {
 		return nextTask
 	}
 
-	public func taskFinished(_ task: TQTask, error: Error?) -> Bool {
+	private func moveToEndOfQueue(_ task: TQTask) {
+		task.additionTimestamp = Date().timeIntervalSince1970
+		taskDatabase.saveTask(task)
+	}
+
+	internal func taskFinished(_ task: TQTask, error: Error?) -> Bool {
 		var rerunNow = false
 
 		synchronized {
 			if error != nil {
 				task.retryCounter += 1
 				task.totalTryCounter += 1
-				taskDatabase.saveTask(task)
 
 				if task.totalTryCounter > task.maxNumberOfTries {
 					taskDatabase.removeTask(task)
 				} else if task.retryCounter > task.maxNumberOfRetries {
-					taskDatabase.moveToEndOfQueue(task)
+					task.retryCounter = 0
+					moveToEndOfQueue(task)
 				} else {
+					taskDatabase.saveTask(task)
 					rerunNow = true
 				}
 			} else {
@@ -71,10 +83,15 @@ public final class TQQueue {
 		return rerunNow
 	}
 
-	public func addTask(_ task: TQTask) {
-		synchronized {
-			taskDatabase.addTask(task)
-			// startThreads()
+	public func addTask(_ task: TQTask) -> Bool {
+		if initialized {
+			synchronized {
+				taskDatabase.addTask(task)
+//				startThreads()
+			}
+			return true
+		} else {
+			return false
 		}
 	}
 
@@ -88,9 +105,39 @@ public final class TQQueue {
 		}
 	}
 
+	public func stopThreads() {
+		synchronized {
+			for thread in threads {
+				if thread.isExecuting {
+					thread.cancel()
+				}
+			}
+		}
+	}
+
 	private init() {
 		for _ in 1...TQConfig.NUMBER_OF_THREADS {
 			threads.append(TQThread())
+		}
+	}
+
+	public func initialize(key: String, bundle: Bundle, classResolver: @escaping ((String) -> AnyClass?)) -> Bool {
+		synchronized {
+			mainBundle = bundle
+			classResolverFunction = classResolver
+			initialized = taskDatabase.initialize(databaseKey: key)
+			if initialized {
+//				startThreads()
+			}
+		}
+		return initialized
+	}
+
+	public func uninitialize() {
+		synchronized {
+			stopThreads()
+			taskDatabase.uninitialize()
+			initialized = false
 		}
 	}
 
