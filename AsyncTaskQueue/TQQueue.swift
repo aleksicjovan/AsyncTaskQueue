@@ -54,8 +54,10 @@ public final class TQQueue {
 	}
 
 	private func moveToEndOfQueue(_ task: TQTask) {
-		task.additionTimestamp = Date().timeIntervalSince1970
-		taskDatabase.saveTask(task)
+		synchronized {
+			task.additionTimestamp = Date().timeIntervalSince1970
+			taskDatabase.saveTask(task)
+		}
 	}
 
 	internal func taskFinished(_ task: TQTask, error: Error?) -> Bool {
