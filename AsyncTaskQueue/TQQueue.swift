@@ -14,8 +14,6 @@ public final class TQQueue {
 
 	private(set) var mainBundle: Bundle!
 
-	private(set) var classResolverFunction: ((String) -> AnyClass?)!
-
 	private var taskDatabase = TQTaskDatabase()
 
 	private var threads = [TQThread]()
@@ -123,10 +121,9 @@ public final class TQQueue {
 		}
 	}
 
-	public func initialize(key: String, bundle: Bundle, classResolver: @escaping ((String) -> AnyClass?)) -> Bool {
+	public func initialize(key: String, mainBundle bundle: Bundle) -> Bool {
 		synchronized {
 			mainBundle = bundle
-			classResolverFunction = classResolver
 			initialized = taskDatabase.initialize(databaseKey: key)
 			if initialized {
 //				startThreads()
