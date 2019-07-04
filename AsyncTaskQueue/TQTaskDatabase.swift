@@ -39,8 +39,15 @@ class TQTaskDatabase {
 	}
 
 	internal func removeTask(_ task: TQTask) {
-		let doc = TQTask.serializeTask(task)
-		try! database.deleteDocument(doc)
+		if let doc = database.document(withID: task.id) {
+			do {
+				try database.deleteDocument(doc)
+			} catch {
+				print("Database errors: error deleting document: \(error)")
+			}
+		} else {
+			print("Database errors: no task in database")
+		}
 	}
 
 	private func getDatabaseNameFromKey(_ key: String) -> String {

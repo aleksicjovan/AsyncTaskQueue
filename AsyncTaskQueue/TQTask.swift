@@ -96,8 +96,9 @@ extension TQTask {
 		let doc = MutableDocument(id: task.id)
 
 		let taskClass = type(of: task)
-		let taskType = String(describing: taskClass)
+		let taskType = NSStringFromClass(taskClass)
 		doc.setString(taskType, forKey: "taskType")
+		doc.setString(task.id, forKey: "id")
 
 		doc.setDouble(task.additionTimestamp, forKey: "additionTimestamp")
 		doc.setValue(task.data, forKey: "data")
@@ -110,7 +111,7 @@ extension TQTask {
 
 	internal static func deserializeTask(_ doc: [String: Any]) -> TQTask {
 		let taskType = doc["taskType"] as! String
-		let anyClass: AnyClass? = TQQueue.shared.classResolverFunction(taskType)
+		let anyClass: AnyClass? = TQQueue.shared.mainBundle.classNamed(taskType)
 		let taskClass = anyClass as! TQTask.Type
 
 		let data = doc["data"] as! [String: Any]
