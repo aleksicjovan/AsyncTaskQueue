@@ -8,6 +8,8 @@
 
 /* Begin PBXBuildFile section */
 		5699724CC67DBE6A5F19C89A /* Pods_AsyncTaskQueue.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8F4478DFB0D79991B0067447 /* Pods_AsyncTaskQueue.framework */; };
+		C07D65C722D0EB4A00DBE7DB /* TQQueueManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C07D65C622D0EB4A00DBE7DB /* TQQueueManager.swift */; };
+		C07D65C922D0ED1C00DBE7DB /* TQMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = C07D65C822D0ED1C00DBE7DB /* TQMonitor.swift */; };
 		C0AAFA5722CBF805002184F2 /* AsyncTaskQueue.h in Headers */ = {isa = PBXBuildFile; fileRef = C0AAFA5522CBF805002184F2 /* AsyncTaskQueue.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		C0AAFA6422CBFBDB002184F2 /* TQThread.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0AAFA5F22CBFBDB002184F2 /* TQThread.swift */; };
 		C0AAFA6522CBFBDB002184F2 /* TQTask.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0AAFA6022CBFBDB002184F2 /* TQTask.swift */; };
@@ -19,6 +21,8 @@
 /* Begin PBXFileReference section */
 		4B90252F6AF008E15F1A1DBE /* Pods-AsyncTaskQueue.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-AsyncTaskQueue.debug.xcconfig"; path = "Pods/Target Support Files/Pods-AsyncTaskQueue/Pods-AsyncTaskQueue.debug.xcconfig"; sourceTree = "<group>"; };
 		8F4478DFB0D79991B0067447 /* Pods_AsyncTaskQueue.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_AsyncTaskQueue.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		C07D65C622D0EB4A00DBE7DB /* TQQueueManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TQQueueManager.swift; sourceTree = "<group>"; };
+		C07D65C822D0ED1C00DBE7DB /* TQMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TQMonitor.swift; sourceTree = "<group>"; };
 		C0AAFA5222CBF805002184F2 /* AsyncTaskQueue.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = AsyncTaskQueue.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		C0AAFA5522CBF805002184F2 /* AsyncTaskQueue.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AsyncTaskQueue.h; sourceTree = "<group>"; };
 		C0AAFA5622CBF805002184F2 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -86,7 +90,9 @@
 				C0AAFA6322CBFBDB002184F2 /* TQTaskDatabase.swift */,
 				C0AAFA5F22CBFBDB002184F2 /* TQThread.swift */,
 				C0AAFA5522CBF805002184F2 /* AsyncTaskQueue.h */,
+				C07D65C622D0EB4A00DBE7DB /* TQQueueManager.swift */,
 				C0AAFA5622CBF805002184F2 /* Info.plist */,
+				C07D65C822D0ED1C00DBE7DB /* TQMonitor.swift */,
 			);
 			path = AsyncTaskQueue;
 			sourceTree = "<group>";
@@ -196,6 +202,8 @@
 				C0AAFA6622CBFBDB002184F2 /* TQQueue.swift in Sources */,
 				C0AAFA6422CBFBDB002184F2 /* TQThread.swift in Sources */,
 				C0AAFA6522CBFBDB002184F2 /* TQTask.swift in Sources */,
+				C07D65C722D0EB4A00DBE7DB /* TQQueueManager.swift in Sources */,
+				C07D65C922D0ED1C00DBE7DB /* TQMonitor.swift in Sources */,
 				C0AAFA6822CBFBDB002184F2 /* TQTaskDatabase.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

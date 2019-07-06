@@ -28,6 +28,8 @@ open class TQTask {
 
 	public internal(set) var id = UUID.init().uuidString
 
+	public internal(set) var queueName: String?
+
 	public internal(set) var additionTimestamp = Date().timeIntervalSince1970
 
 	public internal(set) var state = TQTaskState.ready
@@ -54,7 +56,7 @@ open class TQTask {
 		self.referenceIds = referenceIds
 	}
 
-	internal final func run() {
+	internal final func run() -> Error? {
 		var runningError: Error? = nil
 
 		let semaphore = DispatchSemaphore(value: 0)
@@ -72,13 +74,7 @@ open class TQTask {
 		}
 		semaphore.wait()
 
-		let rerun = TQQueue.shared.taskFinished(self, error: runningError)
-		if rerun {
-			print("Rerunning task \(id)")
-			run()
-		} else {
-			print("Not rerunning task \(id)")
-		}
+		return runningError
 	}
 
 	open func execute(_ onCompletion: (Error?) -> Void) throws {
@@ -109,6 +105,9 @@ extension TQTask {
 		doc.setString(task.state.rawValue, forKey: "state")
 		doc.setInt(task.retryCounter, forKey: "retryCounter")
 		doc.setInt(task.totalTryCounter, forKey: "totalTryCounter")
+		if let queue = task.queueName {
+			doc.setString(queue, forKey: "queue")
+		}
 
 		doc.setValue(task.dependencyList, forKey: "dependencyList")
 		doc.setValue(task.referenceIds, forKey: "referenceIds")
@@ -120,7 +119,7 @@ extension TQTask {
 
 	internal static func deserializeTask(_ doc: [String: Any]) -> TQTask {
 		let taskType = doc["taskType"] as! String
-		let anyClass: AnyClass? = TQQueue.shared.mainBundle.classNamed(taskType)
+		let anyClass: AnyClass? = TQQueueManager.shared.mainBundle.classNamed(taskType)
 		let taskClass = anyClass as! TQTask.Type
 
 		let data = doc["data"] as! [String: Any]
@@ -133,6 +132,7 @@ extension TQTask {
 		task.state = TQTaskState(rawValue: (doc["state"] as! String))!
 		task.retryCounter = doc["retryCounter"] as! Int
 		task.totalTryCounter = doc["totalTryCounter"] as! Int
+		task.queueName = doc["queue"] as? String
 
 		return task
 	}
