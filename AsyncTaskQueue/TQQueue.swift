@@ -8,6 +8,18 @@
 
 import Foundation
 
+public struct TQTaskDependancyMap {
+
+	let type: AnyClass?
+
+	let dependancyReferenceList: [String]?
+
+	public init(_ type: AnyClass?, _ dependancyReferenceList: [String]?) {
+		self.type = type
+		self.dependancyReferenceList = dependancyReferenceList
+	}
+}
+
 public final class TQQueue {
 
 	private(set) var initialized = false
@@ -76,6 +88,7 @@ public final class TQQueue {
 					rerunNow = true
 				}
 			} else {
+				taskDatabase.updateAllDependentTasks(task)
 				taskDatabase.removeTask(task)
 			}
 		}
@@ -83,9 +96,14 @@ public final class TQQueue {
 		return rerunNow
 	}
 
-	public func addTask(_ task: TQTask) -> Bool {
+	public func addTask(_ task: TQTask, taskDependancyMap: [TQTaskDependancyMap]? = nil) -> Bool {
 		if initialized {
 			synchronized {
+				let dependencyList = taskDatabase.getDependencyList(for: taskDependancyMap)
+				task.dependencyList = dependencyList
+				if dependencyList.count > 0 {
+					task.state = .notReady
+				}
 				taskDatabase.addTask(task)
 //				startThreads()
 			}
