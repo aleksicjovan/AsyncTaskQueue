@@ -61,14 +61,11 @@ open class TQTask {
 
 		let semaphore = DispatchSemaphore(value: 0)
 		do {
-			print("Running task \(id)")
 			try execute { error in
-				print("Task finished with error \(error?.localizedDescription ?? "'none'")")
 				runningError = error
 				semaphore.signal()
 			}
 		} catch {
-			print("Task failed with error \(error.localizedDescription)")
 			runningError = error
 			semaphore.signal()
 		}

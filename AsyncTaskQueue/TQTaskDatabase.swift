@@ -110,6 +110,7 @@ internal class TQTaskDatabase {
 		let expression = ArrayFunction.contains(Expression.property("dependencyList"), value: Expression.string(task.id))
 		let query = getTaskQuery(expression: expression)
 
+		var updatedQueues = Set<String>()
 		var dependentTasks = [TQTask]()
 		for result in try! query.execute() {
 			let taskDictionary = result.dictionary(forKey: database.name)!.toDictionary()
@@ -117,7 +118,9 @@ internal class TQTaskDatabase {
 
 			dependentTask.dependencyList.removeAll(where: { $0 == task.id })
 			if dependentTask.dependencyList.count == 0 {
+				print("DB: setting task \(task.id) status to ready")
 				dependentTask.state = .ready
+				updatedQueues.insert(dependentTask.queueName!)
 			}
 
 			dependentTasks.append(dependentTask)
@@ -128,6 +131,12 @@ internal class TQTaskDatabase {
 				saveTask(dependentTask)
 			}
 		}
+
+		print("DB: updatedQueues = \(updatedQueues)")
+		for queueName in updatedQueues {
+			let queue = TQQueueManager.shared.getQueue(named: queueName)!
+			queue.startThreads()
+		}
 	}
 
 	internal func saveTask(_ task: TQTask) {
@@ -137,6 +146,11 @@ internal class TQTaskDatabase {
 	}
 
 	internal func addTask(_ task: TQTask) {
+		let name = task.data["name"] as! String
+		let counter = task.data["counter"] as! Int
+		let dependancyList = task.dependencyList.joined(separator: ", ")
+		let referenceIds = task.referenceIds.joined(separator: ", ")
+		print("DB: adding \(task.id) task called \(name)_\(counter) with dependancies \(dependancyList) and referenceIds \(referenceIds)")
 		saveTask(task)
 	}
 

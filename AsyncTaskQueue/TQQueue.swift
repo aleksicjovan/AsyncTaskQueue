@@ -23,7 +23,9 @@ public struct TQTaskDependancyMap {
 
 public final class TQQueue: TQMonitor {
 
-	private let name: String
+	public let name: String
+
+	public let threadNumber: Int
 
 	private var threads = [Thread]()
 
@@ -50,10 +52,13 @@ public final class TQQueue: TQMonitor {
 
 	public func startThreads() {
 		synchronized {
-			for thread in threads {
-				if !thread.isExecuting {
-					thread.start()
-				}
+			threads.removeAll(where: { !$0.isExecuting })
+			let numberOfThreadsToStart = threadNumber - threads.count
+			print("TQ: starting \(numberOfThreadsToStart) threads")
+			for _ in 1...numberOfThreadsToStart {
+				let thread = TQThread(queue: self)
+				threads.append(TQThread(queue: self))
+				thread.start()
 			}
 		}
 	}
@@ -65,18 +70,16 @@ public final class TQQueue: TQMonitor {
 					thread.cancel()
 				}
 			}
+			threads = []
 		}
 	}
 	
 
-	internal init(queue: String) {
-		self.name = queue
+	internal init(name: String, threadNumber: Int) {
+		self.name = name
+		self.threadNumber = threadNumber
 
 		super.init()
-
-		for _ in 1...TQConfig.NUMBER_OF_THREADS {
-			threads.append(TQThread(queue: self))
-		}
 	}
 
 }

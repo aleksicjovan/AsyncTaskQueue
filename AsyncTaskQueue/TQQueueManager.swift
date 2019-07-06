@@ -14,7 +14,7 @@ public final class TQQueueManager: TQMonitor {
 
 	internal private(set) var mainBundle: Bundle!
 
-	private var mainQueue: TQQueue!
+	private var queues = [TQQueue]()
 
 	private var taskDatabase = TQTaskDatabase()
 
@@ -84,11 +84,17 @@ public final class TQQueueManager: TQMonitor {
 		}
 	}
 
+	private func loadQueues() {
+
+	}
+
 	public func initialize(key: String, mainBundle bundle: Bundle) -> Bool {
 		synchronized {
 			mainBundle = bundle
 			initialized = taskDatabase.initialize(databaseKey: key)
-			mainQueue = TQQueue(queue: "main")
+			if initialized {
+				loadQueues()
+			}
 		}
 		return initialized
 	}
@@ -100,8 +106,26 @@ public final class TQQueueManager: TQMonitor {
 		}
 	}
 
-	public func getQueue(named queueName: String) -> TQQueue {
-		return mainQueue
+	public func hasQueue(named queueName: String) -> Bool {
+		return getQueue(named: queueName) != nil
+	}
+
+	public func getQueue(named queueName: String) -> TQQueue? {
+		return queues.first(where: { $0.name == queueName })
+	}
+
+	public func createQueue(name: String, threadNumber: Int) -> TQQueue? {
+		if hasQueue(named: name) {
+			return nil
+		}
+
+		let queue = TQQueue.init(name: name, threadNumber: threadNumber)
+		queues.append(queue)
+		return queue
+	}
+
+	private override init() {
+		super.init()
 	}
 
 	public static let shared = TQQueueManager()
