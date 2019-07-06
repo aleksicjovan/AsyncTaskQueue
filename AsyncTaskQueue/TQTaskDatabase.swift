@@ -39,7 +39,7 @@ internal class TQTaskDatabase {
 
 		let resultSet = try! query.execute()
 		if let result = resultSet.next() {
-			return TQTask.deserializeTask(result.dictionary(forKey: database.name)!.toDictionary())
+			return TQTaskDatabase.deserializeTask(result.dictionary(forKey: database.name)!.toDictionary())
 		} else {
 			return nil
 		}
@@ -114,7 +114,7 @@ internal class TQTaskDatabase {
 		var dependentTasks = [TQTask]()
 		for result in try! query.execute() {
 			let taskDictionary = result.dictionary(forKey: database.name)!.toDictionary()
-			let dependentTask = TQTask.deserializeTask(taskDictionary)
+			let dependentTask = TQTaskDatabase.deserializeTask(taskDictionary)
 
 			dependentTask.dependencyList.removeAll(where: { $0 == task.id })
 			if dependentTask.dependencyList.count == 0 {
@@ -140,7 +140,7 @@ internal class TQTaskDatabase {
 	}
 
 	internal func saveTask(_ task: TQTask) {
-		let doc = TQTask.serializeTask(task)
+		let doc = TQTaskDatabase.serializeTask(task)
 		doc.setString("task", forKey: "type")
 		try! database.saveDocument(doc)
 	}
@@ -177,7 +177,7 @@ internal class TQTaskDatabase {
 		var taskToUpdate = [TQTask]()
 		for result in try! query.execute() {
 			let taskDictionary = result.dictionary(forKey: database.name)!.toDictionary()
-			let task = TQTask.deserializeTask(taskDictionary)
+			let task = TQTaskDatabase.deserializeTask(taskDictionary)
 
 			task.state = .ready
 			task.retryCounter = 0
@@ -193,7 +193,27 @@ internal class TQTaskDatabase {
 	}
 
 	internal func loadQueues() -> [TQQueue] {
-		return []
+		let query = QueryBuilder
+			.select(SelectResult.all())
+			.from(DataSource.database(database))
+			.where(Expression.property("type").equalTo(Expression.string("queue")))
+
+		var queues = [TQQueue]()
+
+		for result in try! query.execute() {
+			let queueDictionary = result.dictionary(forKey: database.name)!.toDictionary()
+			let queue = TQTaskDatabase.deserializeQueue(queueDictionary)
+
+			queues.append(queue)
+		}
+
+		return queues
+	}
+
+	internal func saveQueue(_ queue: TQQueue) {
+		let doc = TQTaskDatabase.serializeQueue(queue)
+		doc.setString("queue", forKey: "type")
+		try! database.saveDocument(doc)
 	}
 
 	internal func initialize(databaseKey: String) -> Bool {
@@ -209,6 +229,76 @@ internal class TQTaskDatabase {
 
 	internal func uninitialize() {
 		database = nil
+	}
+
+}
+
+extension TQTaskDatabase {
+
+	private static func serializeTask(_ task: TQTask) -> MutableDocument {
+		let doc = MutableDocument(id: task.id)
+
+		let taskClass = type(of: task)
+		let taskType = NSStringFromClass(taskClass)
+		doc.setString(taskType, forKey: "taskType")
+		doc.setString(task.id, forKey: "id")
+
+		doc.setDouble(task.additionTimestamp, forKey: "additionTimestamp")
+		doc.setString(task.state.rawValue, forKey: "state")
+		doc.setInt(task.retryCounter, forKey: "retryCounter")
+		doc.setInt(task.totalTryCounter, forKey: "totalTryCounter")
+		if let queue = task.queueName {
+			doc.setString(queue, forKey: "queue")
+		}
+
+		doc.setValue(task.dependencyList, forKey: "dependencyList")
+		doc.setValue(task.referenceIds, forKey: "referenceIds")
+
+		doc.setValue(task.data, forKey: "data")
+
+		return doc
+	}
+
+	private static func deserializeTask(_ doc: [String: Any]) -> TQTask {
+		let taskType = doc["taskType"] as! String
+		let anyClass: AnyClass? = TQQueueManager.shared.mainBundle.classNamed(taskType)
+		let taskClass = anyClass as! TQTask.Type
+
+		let data = doc["data"] as! [String: Any]
+		let dependencyList = doc["dependencyList"] as! [String]
+		let referenceIds = doc["referenceIds"] as! [String]
+		let task = taskClass.init(data: data, referenceIds: referenceIds, dependencyList: dependencyList)
+
+		task.id = doc["id"] as! String
+		task.additionTimestamp = doc["additionTimestamp"] as! Double
+		task.state = TQTaskState(rawValue: (doc["state"] as! String))!
+		task.retryCounter = doc["retryCounter"] as! Int
+		task.totalTryCounter = doc["totalTryCounter"] as! Int
+		task.queueName = doc["queue"] as? String
+
+		return task
+	}
+
+}
+
+extension TQTaskDatabase {
+
+	private static func serializeQueue(_ queue: TQQueue) -> MutableDocument {
+		let doc = MutableDocument()
+
+		doc.setString(queue.name, forKey: "name")
+		doc.setInt(queue.threadNumber, forKey: "threadNumber")
+
+		return doc
+	}
+
+	private static func deserializeQueue(_ doc: [String: Any]) -> TQQueue {
+		let name = doc["name"] as! String
+		let threadNumber = doc["threadNumber"] as! Int
+
+		let queue = TQQueue(name: name, threadNumber: threadNumber)
+
+		return queue
 	}
 
 }
