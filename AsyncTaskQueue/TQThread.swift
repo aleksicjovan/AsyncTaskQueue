@@ -39,7 +39,6 @@ internal class TQThread: Thread {
 		if error != nil {
 			let rerun = queue.taskFailed(task, error: error!)
 			if rerun {
-				print("Rerunning task \(task.id)")
 				runTask(task)
 			}
 		} else {
