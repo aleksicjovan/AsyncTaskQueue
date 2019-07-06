@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import CouchbaseLiteSwift
 
 public struct TQTaskDependancyMap {
 
@@ -20,97 +21,31 @@ public struct TQTaskDependancyMap {
 	}
 }
 
-public final class TQQueue {
+public final class TQQueue: TQMonitor {
 
-	private(set) var initialized = false
+	private let name: String
 
-	private(set) var mainBundle: Bundle!
+	private var threads = [Thread]()
 
-	private var taskDatabase = TQTaskDatabase()
-
-	private var threads = [TQThread]()
-
-	private var currentThread: Thread?
-
-	private let synchronizationSemaphore = DispatchSemaphore(value: 1)
-
-	private func synchronized(_ block: () -> Void) {
-		if currentThread != Thread.current {
-			synchronizationSemaphore.wait()
-			currentThread = Thread.current
-		}
-
-		defer {
-			currentThread = nil
-			synchronizationSemaphore.signal()
-		}
-
-		block()
+	public func addTask(_ task: TQTask, taskDependancyMap: [TQTaskDependancyMap]?) -> Bool {
+		task.queueName = name
+		return TQQueueManager.shared.addTask(task, taskDependancyMap: taskDependancyMap)
 	}
 
-	internal func getNextTask() -> TQTask? {
-		var nextTask: TQTask? = nil
-
+	internal func getNextReadyTask() -> TQTask? {
+		var task: TQTask?
 		synchronized {
-			nextTask = taskDatabase.getFirstReadyTask()
-
-			if nextTask != nil {
-				nextTask!.state = .running
-				taskDatabase.saveTask(nextTask!)
-			}
+			task = TQQueueManager.shared.getNextReadyTask(for: name)
 		}
-
-		return nextTask
+		return task
 	}
 
-	private func moveToEndOfQueue(_ task: TQTask) {
-		synchronized {
-			task.additionTimestamp = Date().timeIntervalSince1970
-			taskDatabase.saveTask(task)
-		}
+	internal func taskFailed(_ task: TQTask, error: Error) -> Bool {
+		return TQQueueManager.shared.taskFailed(task)
 	}
 
-	internal func taskFinished(_ task: TQTask, error: Error?) -> Bool {
-		var rerunNow = false
-
-		synchronized {
-			if error != nil {
-				task.retryCounter += 1
-				task.totalTryCounter += 1
-
-				if task.totalTryCounter > task.maxNumberOfTries {
-					taskDatabase.removeTask(task)
-				} else if task.retryCounter > task.maxNumberOfRetries {
-					task.retryCounter = 0
-					moveToEndOfQueue(task)
-				} else {
-					taskDatabase.saveTask(task)
-					rerunNow = true
-				}
-			} else {
-				taskDatabase.updateAllDependentTasks(task)
-				taskDatabase.removeTask(task)
-			}
-		}
-
-		return rerunNow
-	}
-
-	public func addTask(_ task: TQTask, taskDependancyMap: [TQTaskDependancyMap]? = nil) -> Bool {
-		if initialized {
-			synchronized {
-				let dependencyList = taskDatabase.getDependencyList(for: taskDependancyMap)
-				task.dependencyList = dependencyList
-				if dependencyList.count > 0 {
-					task.state = .notReady
-				}
-				taskDatabase.addTask(task)
-//				startThreads()
-			}
-			return true
-		} else {
-			return false
-		}
+	internal func taskSucceeded(_ task: TQTask) {
+		TQQueueManager.shared.taskSucceeded(task)
 	}
 
 	public func startThreads() {
@@ -132,32 +67,16 @@ public final class TQQueue {
 			}
 		}
 	}
+	
 
-	private init() {
+	internal init(queue: String) {
+		self.name = queue
+
+		super.init()
+
 		for _ in 1...TQConfig.NUMBER_OF_THREADS {
-			threads.append(TQThread())
+			threads.append(TQThread(queue: self))
 		}
 	}
-
-	public func initialize(key: String, mainBundle bundle: Bundle) -> Bool {
-		synchronized {
-			mainBundle = bundle
-			initialized = taskDatabase.initialize(databaseKey: key)
-			if initialized {
-//				startThreads()
-			}
-		}
-		return initialized
-	}
-
-	public func uninitialize() {
-		synchronized {
-			stopThreads()
-			taskDatabase.uninitialize()
-			initialized = false
-		}
-	}
-
-	public static let shared = TQQueue()
 
 }

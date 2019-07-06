@@ -10,13 +10,19 @@ import Foundation
 
 internal class TQThread: Thread {
 
+	let queue: TQQueue
+
+	internal init(queue: TQQueue) {
+		self.queue = queue
+	}
+
 	internal override func main() {
 		while true {
 			var shouldBreak = false
 
 			autoreleasepool {
-				if let task = TQQueue.shared.getNextTask() {
-					task.run()
+				if let task = queue.getNextReadyTask() {
+					runTask(task)
 				} else {
 					shouldBreak = true
 				}
@@ -28,4 +34,16 @@ internal class TQThread: Thread {
 		}
 	}
 
+	private func runTask(_ task: TQTask) {
+		let error = task.run()
+		if error != nil {
+			let rerun = queue.taskFailed(task, error: error!)
+			if rerun {
+				print("Rerunning task \(task.id)")
+				runTask(task)
+			}
+		} else {
+			queue.taskSucceeded(task)
+		}
+	}
 }

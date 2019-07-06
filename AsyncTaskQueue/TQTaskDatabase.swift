@@ -9,25 +9,33 @@
 import Foundation
 import CouchbaseLiteSwift
 
-class TQTaskDatabase {
+internal class TQTaskDatabase {
 
 	private var database: Database!
 
-	private func getQuery() -> Query {
-		let query = QueryBuilder
+	private func getTaskQuery(expression: ExpressionProtocol?, queue: String? = nil, limit: Int = Int.max) -> Query {
+		var fullExpression = Expression.property("type").equalTo(Expression.string("task"))
+		if let queue = queue {
+			let queueExpression = Expression.property("queue").equalTo(Expression.string(queue))
+			fullExpression = fullExpression.and(queueExpression)
+		}
+		if expression != nil {
+			fullExpression = fullExpression.and(expression!)
+		}
+
+		let query: Query = QueryBuilder
 			.select(SelectResult.all())
 			.from(DataSource.database(database))
+			.where(fullExpression)
+			.orderBy(Ordering.property("additionTimestamp").ascending())
+			.limit(Expression.int(limit))
 
 		return query
 	}
 
-	internal func getFirstReadyTask(requiresInternetConnection: Bool = false) -> TQTask? {
-		let query = QueryBuilder
-			.select(SelectResult.all())
-			.from(DataSource.database(database))
-			.where(Expression.property("state").equalTo(Expression.string(TQTaskState.ready.rawValue)))
-			.orderBy(Ordering.property("additionTimestamp").ascending())
-			.limit(Expression.int(1))
+	internal func getFirstReadyTask(for queue: String) -> TQTask? {
+		let expression = Expression.property("state").equalTo(Expression.string(TQTaskState.ready.rawValue))
+		let query = getTaskQuery(expression: expression, queue: queue, limit: 1)
 
 		let resultSet = try! query.execute()
 		if let result = resultSet.next() {
@@ -99,19 +107,19 @@ class TQTaskDatabase {
 	}
 
 	internal func updateAllDependentTasks(_ task: TQTask) {
-		let query = QueryBuilder
-			.select(SelectResult.all())
-			.from(DataSource.database(database))
-			.where(ArrayFunction.contains(Expression.property("dependencyList"), value: Expression.string(task.id)))
+		let expression = ArrayFunction.contains(Expression.property("dependencyList"), value: Expression.string(task.id))
+		let query = getTaskQuery(expression: expression)
 
 		var dependentTasks = [TQTask]()
 		for result in try! query.execute() {
 			let taskDictionary = result.dictionary(forKey: database.name)!.toDictionary()
 			let dependentTask = TQTask.deserializeTask(taskDictionary)
+
 			dependentTask.dependencyList.removeAll(where: { $0 == task.id })
 			if dependentTask.dependencyList.count == 0 {
 				dependentTask.state = .ready
 			}
+
 			dependentTasks.append(dependentTask)
 		}
 
@@ -124,6 +132,7 @@ class TQTaskDatabase {
 
 	internal func saveTask(_ task: TQTask) {
 		let doc = TQTask.serializeTask(task)
+		doc.setString("task", forKey: "type")
 		try! database.saveDocument(doc)
 	}
 
