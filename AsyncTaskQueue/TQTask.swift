@@ -90,48 +90,5 @@ open class TQTask {
 
 extension TQTask {
 
-	internal static func serializeTask(_ task: TQTask) -> MutableDocument {
-		let doc = MutableDocument(id: task.id)
-
-		let taskClass = type(of: task)
-		let taskType = NSStringFromClass(taskClass)
-		doc.setString(taskType, forKey: "taskType")
-		doc.setString(task.id, forKey: "id")
-
-		doc.setDouble(task.additionTimestamp, forKey: "additionTimestamp")
-		doc.setString(task.state.rawValue, forKey: "state")
-		doc.setInt(task.retryCounter, forKey: "retryCounter")
-		doc.setInt(task.totalTryCounter, forKey: "totalTryCounter")
-		if let queue = task.queueName {
-			doc.setString(queue, forKey: "queue")
-		}
-
-		doc.setValue(task.dependencyList, forKey: "dependencyList")
-		doc.setValue(task.referenceIds, forKey: "referenceIds")
-
-		doc.setValue(task.data, forKey: "data")
-
-		return doc
-	}
-
-	internal static func deserializeTask(_ doc: [String: Any]) -> TQTask {
-		let taskType = doc["taskType"] as! String
-		let anyClass: AnyClass? = TQQueueManager.shared.mainBundle.classNamed(taskType)
-		let taskClass = anyClass as! TQTask.Type
-
-		let data = doc["data"] as! [String: Any]
-		let dependencyList = doc["dependencyList"] as! [String]
-		let referenceIds = doc["referenceIds"] as! [String]
-		let task = taskClass.init(data: data, referenceIds: referenceIds, dependencyList: dependencyList)
-
-		task.id = doc["id"] as! String
-		task.additionTimestamp = doc["additionTimestamp"] as! Double
-		task.state = TQTaskState(rawValue: (doc["state"] as! String))!
-		task.retryCounter = doc["retryCounter"] as! Int
-		task.totalTryCounter = doc["totalTryCounter"] as! Int
-		task.queueName = doc["queue"] as? String
-
-		return task
-	}
 
 }

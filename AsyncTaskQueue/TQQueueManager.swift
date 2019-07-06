@@ -117,6 +117,7 @@ public final class TQQueueManager: TQMonitor {
 
 		let queue = TQQueue.init(name: name, threadNumber: threadNumber)
 		queues.append(queue)
+		taskDatabase.saveQueue(queue)
 		return queue
 	}
 
