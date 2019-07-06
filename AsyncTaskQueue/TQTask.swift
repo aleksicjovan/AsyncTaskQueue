@@ -26,27 +26,32 @@ public enum TQTaskState: String {
 
 open class TQTask {
 
-	public internal(set) var id: String
+	public internal(set) var id = UUID.init().uuidString
 
-	public internal(set) var additionTimestamp: TimeInterval
+	public internal(set) var additionTimestamp = Date().timeIntervalSince1970
 
-	public internal(set) var state: TQTaskState
+	public internal(set) var state = TQTaskState.ready
 
-	public internal(set) var retryCounter: Int
+	public internal(set) var retryCounter = 0
 
-	public internal(set) var totalTryCounter: Int
+	public internal(set) var totalTryCounter = 0
+
+	public internal(set) var referenceIds = [String]()
+
+	public internal(set) var dependencyList = [String]()
 
 	public var data: [String: Any]
 
-	required public init(priority: TQTaskPriority = .normal, data: [String: Any]) {
-		self.id = UUID.init().uuidString
-		self.state = .ready
-		self.retryCounter = 0
-		self.totalTryCounter = 0
-
-		self.additionTimestamp = Date().timeIntervalSince1970 + priority.rawValue
-
+	required public init(data: [String: Any], referenceIds: [String], dependencyList: [String]) {
 		self.data = data
+		self.referenceIds = referenceIds
+		self.dependencyList = dependencyList
+	}
+
+	public init(data: [String: Any], priority: TQTaskPriority = .normal, referenceIds: [String] = []) {
+		self.data = data
+		self.additionTimestamp += priority.rawValue
+		self.referenceIds = referenceIds
 	}
 
 	internal final func run() {
@@ -101,10 +106,14 @@ extension TQTask {
 		doc.setString(task.id, forKey: "id")
 
 		doc.setDouble(task.additionTimestamp, forKey: "additionTimestamp")
-		doc.setValue(task.data, forKey: "data")
 		doc.setString(task.state.rawValue, forKey: "state")
 		doc.setInt(task.retryCounter, forKey: "retryCounter")
 		doc.setInt(task.totalTryCounter, forKey: "totalTryCounter")
+
+		doc.setValue(task.dependencyList, forKey: "dependencyList")
+		doc.setValue(task.referenceIds, forKey: "referenceIds")
+
+		doc.setValue(task.data, forKey: "data")
 
 		return doc
 	}
@@ -115,7 +124,9 @@ extension TQTask {
 		let taskClass = anyClass as! TQTask.Type
 
 		let data = doc["data"] as! [String: Any]
-		let task = taskClass.init(data: data)
+		let dependencyList = doc["dependencyList"] as! [String]
+		let referenceIds = doc["referenceIds"] as! [String]
+		let task = taskClass.init(data: data, referenceIds: referenceIds, dependencyList: dependencyList)
 
 		task.id = doc["id"] as! String
 		task.additionTimestamp = doc["additionTimestamp"] as! Double
