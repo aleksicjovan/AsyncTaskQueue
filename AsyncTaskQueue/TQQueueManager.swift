@@ -84,16 +84,12 @@ public final class TQQueueManager: TQMonitor {
 		}
 	}
 
-	private func loadQueues() {
-
-	}
-
 	public func initialize(key: String, mainBundle bundle: Bundle) -> Bool {
 		synchronized {
 			mainBundle = bundle
 			initialized = taskDatabase.initialize(databaseKey: key)
 			if initialized {
-				loadQueues()
+				queues = taskDatabase.loadQueues()
 			}
 		}
 		return initialized

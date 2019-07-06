@@ -170,10 +170,37 @@ internal class TQTaskDatabase {
 		return "Database-\(key)"
 	}
 
+	private func runTaskFixup() {
+		let runningTasksExpression = Expression.property("state").equalTo(Expression.string(TQTaskState.running.rawValue))
+		let query = getTaskQuery(expression: runningTasksExpression, queue: nil)
+
+		var taskToUpdate = [TQTask]()
+		for result in try! query.execute() {
+			let taskDictionary = result.dictionary(forKey: database.name)!.toDictionary()
+			let task = TQTask.deserializeTask(taskDictionary)
+
+			task.state = .ready
+			task.retryCounter = 0
+
+			taskToUpdate.append(task)
+		}
+
+		try! database.inBatch {
+			for task in taskToUpdate {
+				saveTask(task)
+			}
+		}
+	}
+
+	internal func loadQueues() -> [TQQueue] {
+		return []
+	}
+
 	internal func initialize(databaseKey: String) -> Bool {
 		do {
 			let databaseName = getDatabaseNameFromKey(databaseKey)
 			database = try Database(name: databaseName)
+			runTaskFixup()
 			return true
 		} catch {
 			return false
