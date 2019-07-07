@@ -73,7 +73,6 @@ public final class TQQueue: TQMonitor {
 			threads = []
 		}
 	}
-	
 
 	internal init(name: String, threadNumber: Int) {
 		self.name = name

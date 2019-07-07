@@ -87,8 +87,3 @@ open class TQTask {
 	}
 
 }
-
-extension TQTask {
-
-
-}

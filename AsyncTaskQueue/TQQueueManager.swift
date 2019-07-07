@@ -18,6 +18,40 @@ public final class TQQueueManager: TQMonitor {
 
 	private var taskDatabase = TQTaskDatabase()
 
+	private func moveToEndOfQueue(_ task: TQTask) {
+		synchronized {
+			task.additionTimestamp = Date().timeIntervalSince1970
+			taskDatabase.saveTask(task)
+		}
+	}
+
+	private func updateAllTasks(dependingOn task: TQTask) {
+		let dependentTasks = taskDatabase.getAllTasks(dependingOn: task)
+
+		for dependentTask in dependentTasks {
+			dependentTask.dependencyList.removeAll(where: { $0 == task.id })
+			if dependentTask.dependencyList.count == 0 {
+				print("DB: setting task \(task.id) status to ready")
+				dependentTask.state = .ready
+			}
+		}
+
+		taskDatabase.saveAllTasks(dependentTasks)
+
+		for queueName in Set(dependentTasks.map({ return $0.queueName! })) {
+			let queue = getQueue(named: queueName)!
+			queue.startThreads()
+		}
+	}
+
+	private func setAllRunningTasksToReady() {
+		let runningTasks = taskDatabase.getAllRunningTasks()
+		for task in runningTasks {
+			task.state = .ready
+		}
+		taskDatabase.saveAllTasks(runningTasks)
+	}
+
 	internal func getNextReadyTask(for queue: String) -> TQTask? {
 		var nextTask: TQTask? = nil
 
@@ -33,16 +67,9 @@ public final class TQQueueManager: TQMonitor {
 		return nextTask
 	}
 
-	private func moveToEndOfQueue(_ task: TQTask) {
-		synchronized {
-			task.additionTimestamp = Date().timeIntervalSince1970
-			taskDatabase.saveTask(task)
-		}
-	}
-
 	internal func taskSucceeded(_ task: TQTask) {
 		synchronized {
-			taskDatabase.updateAllDependentTasks(task)
+			updateAllTasks(dependingOn: task)
 			taskDatabase.removeTask(task)
 		}
 	}
@@ -89,6 +116,7 @@ public final class TQQueueManager: TQMonitor {
 			mainBundle = bundle
 			initialized = taskDatabase.initialize(databaseKey: key)
 			if initialized {
+				setAllRunningTasksToReady()
 				queues = taskDatabase.loadQueues()
 			}
 		}

@@ -13,6 +13,10 @@ internal class TQTaskDatabase {
 
 	private var database: Database!
 
+	private static func getDatabaseNameFromKey(_ key: String) -> String {
+		return "TaskDatabase-\(key)"
+	}
+
 	private func getTaskQuery(expression: ExpressionProtocol?, queue: String? = nil, limit: Int = Int.max) -> Query {
 		var fullExpression = Expression.property("type").equalTo(Expression.string("task"))
 		if let queue = queue {
@@ -31,18 +35,6 @@ internal class TQTaskDatabase {
 			.limit(Expression.int(limit))
 
 		return query
-	}
-
-	internal func getFirstReadyTask(for queue: String) -> TQTask? {
-		let expression = Expression.property("state").equalTo(Expression.string(TQTaskState.ready.rawValue))
-		let query = getTaskQuery(expression: expression, queue: queue, limit: 1)
-
-		let resultSet = try! query.execute()
-		if let result = resultSet.next() {
-			return TQTaskDatabase.deserializeTask(result.dictionary(forKey: database.name)!.toDictionary())
-		} else {
-			return nil
-		}
 	}
 
 	private func getDependancyExpression(_ dependancy: TQTaskDependancyMap) -> ExpressionProtocol? {
@@ -106,43 +98,58 @@ internal class TQTaskDatabase {
 		return dependancyList
 	}
 
-	internal func updateAllDependentTasks(_ task: TQTask) {
+	internal func getFirstReadyTask(for queue: String) -> TQTask? {
+		let expression = Expression.property("state").equalTo(Expression.string(TQTaskState.ready.rawValue))
+		let query = getTaskQuery(expression: expression, queue: queue, limit: 1)
+
+		let resultSet = try! query.execute()
+		if let result = resultSet.next() {
+			return TQTaskDatabase.deserializeTask(result.dictionary(forKey: database.name)!.toDictionary())
+		} else {
+			return nil
+		}
+	}
+
+	internal func getAllTasks(dependingOn task: TQTask) -> [TQTask] {
 		let expression = ArrayFunction.contains(Expression.property("dependencyList"), value: Expression.string(task.id))
 		let query = getTaskQuery(expression: expression)
 
-		var updatedQueues = Set<String>()
 		var dependentTasks = [TQTask]()
 		for result in try! query.execute() {
 			let taskDictionary = result.dictionary(forKey: database.name)!.toDictionary()
 			let dependentTask = TQTaskDatabase.deserializeTask(taskDictionary)
-
-			dependentTask.dependencyList.removeAll(where: { $0 == task.id })
-			if dependentTask.dependencyList.count == 0 {
-				print("DB: setting task \(task.id) status to ready")
-				dependentTask.state = .ready
-				updatedQueues.insert(dependentTask.queueName!)
-			}
-
 			dependentTasks.append(dependentTask)
 		}
 
-		try! database.inBatch {
-			for dependentTask in dependentTasks {
-				saveTask(dependentTask)
-			}
+		return dependentTasks
+	}
+
+	internal func getAllRunningTasks() -> [TQTask] {
+		let expression = Expression.property("state").equalTo(Expression.string(TQTaskState.running.rawValue))
+		let query = getTaskQuery(expression: expression)
+
+		var runningTasks = [TQTask]()
+		for result in try! query.execute() {
+			let taskDictionary = result.dictionary(forKey: database.name)!.toDictionary()
+			let task = TQTaskDatabase.deserializeTask(taskDictionary)
+			runningTasks.append(task)
 		}
 
-		print("DB: updatedQueues = \(updatedQueues)")
-		for queueName in updatedQueues {
-			let queue = TQQueueManager.shared.getQueue(named: queueName)!
-			queue.startThreads()
-		}
+		return runningTasks
 	}
 
 	internal func saveTask(_ task: TQTask) {
 		let doc = TQTaskDatabase.serializeTask(task)
 		doc.setString("task", forKey: "type")
 		try! database.saveDocument(doc)
+	}
+
+	internal func saveAllTasks(_ tasks: [TQTask]) {
+		try! database.inBatch {
+			for task in tasks {
+				saveTask(task)
+			}
+		}
 	}
 
 	internal func addTask(_ task: TQTask) {
@@ -163,32 +170,6 @@ internal class TQTaskDatabase {
 			}
 		} else {
 			print("Database errors: no task in database")
-		}
-	}
-
-	private func getDatabaseNameFromKey(_ key: String) -> String {
-		return "Database-\(key)"
-	}
-
-	private func runTaskFixup() {
-		let runningTasksExpression = Expression.property("state").equalTo(Expression.string(TQTaskState.running.rawValue))
-		let query = getTaskQuery(expression: runningTasksExpression, queue: nil)
-
-		var taskToUpdate = [TQTask]()
-		for result in try! query.execute() {
-			let taskDictionary = result.dictionary(forKey: database.name)!.toDictionary()
-			let task = TQTaskDatabase.deserializeTask(taskDictionary)
-
-			task.state = .ready
-			task.retryCounter = 0
-
-			taskToUpdate.append(task)
-		}
-
-		try! database.inBatch {
-			for task in taskToUpdate {
-				saveTask(task)
-			}
 		}
 	}
 
@@ -218,9 +199,8 @@ internal class TQTaskDatabase {
 
 	internal func initialize(databaseKey: String) -> Bool {
 		do {
-			let databaseName = getDatabaseNameFromKey(databaseKey)
+			let databaseName = TQTaskDatabase.getDatabaseNameFromKey(databaseKey)
 			database = try Database(name: databaseName)
-			runTaskFixup()
 			return true
 		} catch {
 			return false
