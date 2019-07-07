@@ -9,21 +9,6 @@
 import Foundation
 import CouchbaseLiteSwift
 
-public enum TQTaskPriority: TimeInterval {
-	case veryLow = 1800
-	case low = 600
-	case normal = 0
-	case high = -600
-	case veryHigh = -1800
-}
-
-public enum TQTaskState: String {
-	case notReady
-	case ready
-	case running
-	case finished
-}
-
 open class TQTask {
 
 	public internal(set) var id = UUID.init().uuidString

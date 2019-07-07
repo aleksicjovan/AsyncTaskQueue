@@ -10,6 +10,10 @@ import Foundation
 
 public final class TQQueueManager: TQMonitor {
 
+	public let taskFailedNotificationName = Notification.Name("taskFailed")
+
+	public let taskSucceededNotificationName = Notification.Name("taskSucceeded")
+
 	public private(set) var initialized = false
 
 	internal private(set) var mainBundle: Bundle!
@@ -80,6 +84,10 @@ public final class TQQueueManager: TQMonitor {
 			updateAllTasks(dependingOn: task)
 			taskDatabase.removeTask(task)
 		}
+
+		helperDispatchQueue.async {
+			NotificationCenter.default.post(name: self.taskSucceededNotificationName, object: task)
+		}
 	}
 
 	internal func taskFailed(_ task: TQTask) -> Bool {
@@ -100,6 +108,10 @@ public final class TQQueueManager: TQMonitor {
 				taskDatabase.saveTask(task)
 				rerunNow = true
 			}
+		}
+
+		helperDispatchQueue.async {
+			NotificationCenter.default.post(name: self.taskFailedNotificationName, object: task)
 		}
 
 		return rerunNow
