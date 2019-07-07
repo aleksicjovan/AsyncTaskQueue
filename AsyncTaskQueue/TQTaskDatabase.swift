@@ -230,6 +230,9 @@ extension TQTaskDatabase {
 		if let queue = task.queueName {
 			doc.setString(queue, forKey: "queue")
 		}
+		if let name = task.name {
+			doc.setString(name, forKey: "name")
+		}
 
 		doc.setValue(task.dependencyList, forKey: "dependencyList")
 		doc.setValue(task.referenceIds, forKey: "referenceIds")
@@ -250,6 +253,7 @@ extension TQTaskDatabase {
 		let task = taskClass.init(data: data, referenceIds: referenceIds, dependencyList: dependencyList)
 
 		task.id = doc["id"] as! String
+		task.name = doc["name"] as? String
 		task.additionTimestamp = doc["additionTimestamp"] as! Double
 		task.state = TQTaskState(rawValue: (doc["state"] as! String))!
 		task.retryCounter = doc["retryCounter"] as! Int

@@ -16,6 +16,8 @@ public final class TQQueueManager: TQMonitor {
 
 	private var queues = [TQQueue]()
 
+	private var helperDispatchQueue = DispatchQueue.init(label: "helper")
+
 	private var taskDatabase = TQTaskDatabase()
 
 	private func moveToEndOfQueue(_ task: TQTask) {
@@ -40,7 +42,9 @@ public final class TQQueueManager: TQMonitor {
 
 		for queueName in Set(dependentTasks.map({ return $0.queueName! })) {
 			let queue = getQueue(named: queueName)!
-			queue.startThreads()
+			helperDispatchQueue.async {
+				queue.startThreads()
+			}
 		}
 	}
 

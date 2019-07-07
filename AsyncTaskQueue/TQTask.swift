@@ -44,14 +44,17 @@ open class TQTask {
 
 	public var data: [String: Any]
 
+	public var name: String?
+
 	required public init(data: [String: Any], referenceIds: [String], dependencyList: [String]) {
 		self.data = data
 		self.referenceIds = referenceIds
 		self.dependencyList = dependencyList
 	}
 
-	public init(data: [String: Any], priority: TQTaskPriority = .normal, referenceIds: [String] = []) {
+	public init(data: [String: Any], name: String? = nil, priority: TQTaskPriority = .normal, referenceIds: [String] = []) {
 		self.data = data
+		self.name = name
 		self.additionTimestamp += priority.rawValue
 		self.referenceIds = referenceIds
 	}
