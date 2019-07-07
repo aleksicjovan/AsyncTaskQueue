@@ -138,6 +138,15 @@ internal class TQTaskDatabase {
 		return runningTasks
 	}
 
+	internal func addTask(_ task: TQTask) {
+		let name = task.data["name"] as! String
+		let counter = task.data["counter"] as! Int
+		let dependancyList = task.dependencyList.joined(separator: ", ")
+		let referenceIds = task.referenceIds.joined(separator: ", ")
+		print("DB: adding \(task.id) task called \(name)_\(counter) with dependancies \(dependancyList) and referenceIds \(referenceIds)")
+		saveTask(task)
+	}
+
 	internal func saveTask(_ task: TQTask) {
 		let doc = TQTaskDatabase.serializeTask(task)
 		doc.setString("task", forKey: "type")
@@ -152,15 +161,6 @@ internal class TQTaskDatabase {
 		}
 	}
 
-	internal func addTask(_ task: TQTask) {
-		let name = task.data["name"] as! String
-		let counter = task.data["counter"] as! Int
-		let dependancyList = task.dependencyList.joined(separator: ", ")
-		let referenceIds = task.referenceIds.joined(separator: ", ")
-		print("DB: adding \(task.id) task called \(name)_\(counter) with dependancies \(dependancyList) and referenceIds \(referenceIds)")
-		saveTask(task)
-	}
-
 	internal func removeTask(_ task: TQTask) {
 		if let doc = database.document(withID: task.id) {
 			do {
@@ -170,6 +170,14 @@ internal class TQTaskDatabase {
 			}
 		} else {
 			print("Database errors: no task in database")
+		}
+	}
+
+	internal func removeAllTasks(_ tasks: [TQTask]) {
+		try! database.inBatch {
+			for task in tasks {
+				removeTask(task)
+			}
 		}
 	}
 

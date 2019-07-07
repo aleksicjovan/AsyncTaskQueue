@@ -48,6 +48,10 @@ public final class TQQueueManager: TQMonitor {
 		}
 	}
 
+	private func removeTasks(_ tasks: [TQTask]) {
+		taskDatabase.removeAllTasks(tasks)
+	}
+
 	private func setAllRunningTasksToReady() {
 		let runningTasks = taskDatabase.getAllRunningTasks()
 		for task in runningTasks {
@@ -86,7 +90,9 @@ public final class TQQueueManager: TQMonitor {
 			task.totalTryCounter += 1
 
 			if task.totalTryCounter > task.maxNumberOfTries {
-				taskDatabase.removeTask(task)
+				var tasksToRemove = taskDatabase.getAllTasks(dependingOn: task)
+				tasksToRemove.append(task)
+				removeTasks(tasksToRemove)
 			} else if task.retryCounter > task.maxNumberOfRetries {
 				task.retryCounter = 0
 				moveToEndOfQueue(task)
