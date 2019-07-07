@@ -37,7 +37,6 @@ public final class TQQueueManager: TQMonitor {
 		for dependentTask in dependentTasks {
 			dependentTask.dependencyList.removeAll(where: { $0 == task.id })
 			if dependentTask.dependencyList.count == 0 {
-				print("DB: setting task \(task.id) status to ready")
 				dependentTask.state = .ready
 			}
 		}

@@ -54,7 +54,6 @@ public final class TQQueue: TQMonitor {
 		synchronized {
 			threads.removeAll(where: { !$0.isExecuting })
 			let numberOfThreadsToStart = threadNumber - threads.count
-			print("TQ: starting \(numberOfThreadsToStart) threads")
 			for _ in 1...numberOfThreadsToStart {
 				let thread = TQThread(queue: self)
 				threads.append(TQThread(queue: self))

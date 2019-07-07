@@ -14,7 +14,7 @@ internal class TQTaskDatabase {
 	private var database: Database!
 
 	private static func getDatabaseNameFromKey(_ key: String) -> String {
-		return "TaskDatabase-\(key)"
+		return "TaskDatabase_\(key)"
 	}
 
 	private func getTaskQuery(expression: ExpressionProtocol?, queue: String? = nil, limit: Int = Int.max) -> Query {
@@ -139,15 +139,12 @@ internal class TQTaskDatabase {
 	}
 
 	internal func addTask(_ task: TQTask) {
-		let name = task.data["name"] as! String
-		let counter = task.data["counter"] as! Int
-		let dependancyList = task.dependencyList.joined(separator: ", ")
-		let referenceIds = task.referenceIds.joined(separator: ", ")
-		print("DB: adding \(task.id) task called \(name)_\(counter) with dependancies \(dependancyList) and referenceIds \(referenceIds)")
+		task.createdAt = Date().timeIntervalSince1970
 		saveTask(task)
 	}
 
 	internal func saveTask(_ task: TQTask) {
+		task.updatedAt = Date().timeIntervalSince1970
 		let doc = TQTaskDatabase.serializeTask(task)
 		doc.setString("task", forKey: "type")
 		try! database.saveDocument(doc)
@@ -162,15 +159,8 @@ internal class TQTaskDatabase {
 	}
 
 	internal func removeTask(_ task: TQTask) {
-		if let doc = database.document(withID: task.id) {
-			do {
-				try database.deleteDocument(doc)
-			} catch {
-				print("Database errors: error deleting document: \(error)")
-			}
-		} else {
-			print("Database errors: no task in database")
-		}
+		let doc = database.document(withID: task.id)!
+		try! database.deleteDocument(doc)
 	}
 
 	internal func removeAllTasks(_ tasks: [TQTask]) {
@@ -230,16 +220,18 @@ extension TQTaskDatabase {
 		let taskType = NSStringFromClass(taskClass)
 		doc.setString(taskType, forKey: "taskType")
 		doc.setString(task.id, forKey: "id")
+		doc.setDouble(task.createdAt, forKey: "createdAt")
+		doc.setDouble(task.updatedAt, forKey: "updatedAt")
 
+		if let name = task.name {
+			doc.setString(name, forKey: "name")
+		}
 		doc.setDouble(task.additionTimestamp, forKey: "additionTimestamp")
 		doc.setString(task.state.rawValue, forKey: "state")
 		doc.setInt(task.retryCounter, forKey: "retryCounter")
 		doc.setInt(task.totalTryCounter, forKey: "totalTryCounter")
 		if let queue = task.queueName {
 			doc.setString(queue, forKey: "queue")
-		}
-		if let name = task.name {
-			doc.setString(name, forKey: "name")
 		}
 
 		doc.setValue(task.dependencyList, forKey: "dependencyList")
@@ -261,6 +253,9 @@ extension TQTaskDatabase {
 		let task = taskClass.init(data: data, referenceIds: referenceIds, dependencyList: dependencyList)
 
 		task.id = doc["id"] as! String
+		task.createdAt = doc["createdAt"] as! Double
+		task.updatedAt = doc["updatedAt"] as! Double
+
 		task.name = doc["name"] as? String
 		task.additionTimestamp = doc["additionTimestamp"] as! Double
 		task.state = TQTaskState(rawValue: (doc["state"] as! String))!

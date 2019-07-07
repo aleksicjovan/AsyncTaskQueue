@@ -13,6 +13,10 @@ open class TQTask {
 
 	public internal(set) var id = UUID.init().uuidString
 
+	public internal(set) var createdAt: Double = Date().timeIntervalSince1970
+
+	public internal(set) var updatedAt: Double = Date().timeIntervalSince1970
+
 	public internal(set) var queueName: String?
 
 	public internal(set) var additionTimestamp = Date().timeIntervalSince1970
